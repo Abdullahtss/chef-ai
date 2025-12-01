@@ -1,1 +1,12 @@
-// Dashboard Page 
+function Dashboard() {
+    return (
+        <div className="dashboard-page">
+            <div className="container">
+                <h1>Dashboard</h1>
+                <p>Dashboard content coming soon...</p>
+            </div>
+        </div>
+    );
+}
+
+export default Dashboard;

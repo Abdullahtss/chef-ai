@@ -3,8 +3,17 @@ import { AuthProvider } from './context/AuthContext'
 import Login from './components/auth/Login'
 import Signup from './components/auth/Signup'
 import PrivateRoute from './components/auth/PrivateRoute'
+import PublicRoute from './components/auth/PublicRoute'
 import RecipeGenerator from './components/RecipeGenerator'
 import Home from './pages/Home'
+import Dashboard from './pages/Dashboard'
+import RecipesPage from './pages/RecipesPage'
+import ProfilePage from './pages/ProfilePage'
+import FitnessPage from './pages/FitnessPage'
+import NutritionPage from './pages/NutritionPage'
+import CommunityPage from './pages/CommunityPage'
+import SupportPage from './pages/SupportPage'
+import NotFound from './pages/NotFound'
 import './App.css'
 
 function App() {
@@ -12,11 +21,19 @@ function App() {
         <AuthProvider>
             <Router>
                 <Routes>
-                    {/* Public Routes */}
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/signup" element={<Signup />} />
+                    {/* Public Routes - Only accessible when not authenticated */}
+                    <Route path="/login" element={
+                        <PublicRoute>
+                            <Login />
+                        </PublicRoute>
+                    } />
+                    <Route path="/signup" element={
+                        <PublicRoute>
+                            <Signup />
+                        </PublicRoute>
+                    } />
 
-                    {/* Protected Routes */}
+                    {/* Protected Routes - All routes except /login require authentication */}
                     <Route path="/home" element={
                         <PrivateRoute>
                             <Home />
@@ -53,8 +70,51 @@ function App() {
                         </PrivateRoute>
                     } />
 
-                    {/* Default redirect */}
-                    <Route path="/" element={<Navigate to="/login" />} />
+                    <Route path="/dashboard" element={
+                        <PrivateRoute>
+                            <Dashboard />
+                        </PrivateRoute>
+                    } />
+
+                    <Route path="/profile" element={
+                        <PrivateRoute>
+                            <ProfilePage />
+                        </PrivateRoute>
+                    } />
+
+                    <Route path="/fitness" element={
+                        <PrivateRoute>
+                            <FitnessPage />
+                        </PrivateRoute>
+                    } />
+
+                    <Route path="/nutrition" element={
+                        <PrivateRoute>
+                            <NutritionPage />
+                        </PrivateRoute>
+                    } />
+
+                    <Route path="/community" element={
+                        <PrivateRoute>
+                            <CommunityPage />
+                        </PrivateRoute>
+                    } />
+
+                    <Route path="/support" element={
+                        <PrivateRoute>
+                            <SupportPage />
+                        </PrivateRoute>
+                    } />
+
+                    {/* Default redirect - Redirects to /login if not authenticated, /home if authenticated */}
+                    <Route path="/" element={<Navigate to="/login" replace />} />
+
+                    {/* Catch-all route for 404 - Protected */}
+                    <Route path="*" element={
+                        <PrivateRoute>
+                            <NotFound />
+                        </PrivateRoute>
+                    } />
                 </Routes>
             </Router>
         </AuthProvider>
