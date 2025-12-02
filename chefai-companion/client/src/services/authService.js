@@ -35,6 +35,16 @@ export const getCurrentUser = () => {
     return userStr ? JSON.parse(userStr) : null;
 };
 
+// Google OAuth login/signup
+export const googleLogin = async (credential) => {
+    const response = await api.post('/auth/google', { credential });
+    if (response.data.token) {
+        localStorage.setItem('token', response.data.token);
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+    }
+    return response.data;
+};
+
 // Get stored token
 export const getToken = () => {
     return localStorage.getItem('token');
@@ -52,6 +62,7 @@ export const initializeAuth = () => {
 export default {
     register,
     login,
+    googleLogin,
     logout,
     getCurrentUser,
     getToken,

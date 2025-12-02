@@ -1,23 +1,22 @@
 import { useState, useEffect, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { getSavedRecipes, getFavoriteRecipes, deleteSavedRecipe, deleteFavoriteRecipe } from '../services/userService';
-import RecipeCard from '../components/RecipeCard';
+import { getSavedRecipes, getFavoriteRecipes } from '../services/userService';
+import chefLogo from '../assets/chef-logo.png';
 import './Home.css';
 
 function Home() {
     const { user, logout } = useContext(AuthContext);
     const navigate = useNavigate();
-    const [savedRecipes, setSavedRecipes] = useState([]);
-    const [favoriteRecipes, setFavoriteRecipes] = useState([]);
+    const [savedCount, setSavedCount] = useState(0);
+    const [favoriteCount, setFavoriteCount] = useState(0);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
 
     useEffect(() => {
-        fetchRecipes();
+        fetchRecipeCounts();
     }, []);
 
-    const fetchRecipes = async () => {
+    const fetchRecipeCounts = async () => {
         try {
             setLoading(true);
             const [savedRes, favoriteRes] = await Promise.all([
@@ -26,15 +25,14 @@ function Home() {
             ]);
 
             if (savedRes.success) {
-                setSavedRecipes(savedRes.recipes);
+                setSavedCount(savedRes.recipes?.length || 0);
             }
 
             if (favoriteRes.success) {
-                setFavoriteRecipes(favoriteRes.recipes);
+                setFavoriteCount(favoriteRes.recipes?.length || 0);
             }
         } catch (err) {
-            console.error('Error fetching recipes:', err);
-            setError('Failed to load your recipes');
+            console.error('Error fetching recipe counts:', err);
         } finally {
             setLoading(false);
         }
@@ -45,20 +43,6 @@ function Home() {
         navigate('/login');
     };
 
-    const handleDelete = async (recipeId, type) => {
-        try {
-            if (type === 'saved') {
-                await deleteSavedRecipe(recipeId);
-                setSavedRecipes(savedRecipes.filter(r => r.recipeId !== recipeId));
-            } else {
-                await deleteFavoriteRecipe(recipeId);
-                setFavoriteRecipes(favoriteRecipes.filter(r => r.recipeId !== recipeId));
-            }
-        } catch (err) {
-            console.error('Error deleting recipe:', err);
-        }
-    };
-
     return (
         <div className="home-page">
             <header className="home-header">
@@ -66,15 +50,23 @@ function Home() {
                     <div className="header-top">
                         <div className="logo-section">
                             <h1 className="logo">
-                                <span className="logo-icon">👨‍🍳</span>
-                                ChefAI Companion
+                                <img src={chefLogo} alt="ChefAI Logo" className="logo-icon" />
+                                <span className="logo-text">ChefAI Companion</span>
                             </h1>
                         </div>
                         <div className="user-actions">
+                            <Link to="/shared" className="btn btn-secondary">
+                                Shared Recipes
+                            </Link>
                             <Link to="/recipes" className="btn btn-secondary">
                                 Generate Recipes
                             </Link>
                             <button onClick={handleLogout} className="btn btn-outline">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                                    <polyline points="16 17 21 12 16 7"/>
+                                    <line x1="21" y1="12" x2="9" y2="12"/>
+                                </svg>
                                 Logout
                             </button>
                         </div>
@@ -91,73 +83,38 @@ function Home() {
                     {loading ? (
                         <div className="loading-state">
                             <div className="spinner-large"></div>
-                            <p>Loading your recipes...</p>
-                        </div>
-                    ) : error ? (
-                        <div className="error-state">
-                            <span>⚠️</span>
-                            <p>{error}</p>
+                            <p>Loading...</p>
                         </div>
                     ) : (
-                        <>
-                            {/* Favorite Recipes Section */}
-                            <section className="recipe-section">
-                                <h3 className="section-title">
-                                    <span>❤️ Favorite Recipes ({favoriteRecipes.length})</span>
-                                </h3>
-                                {favoriteRecipes.length > 0 ? (
-                                    <div className="recipes-grid">
-                                        {favoriteRecipes.map((recipe) => (
-                                            <div key={recipe.recipeId} className="recipe-wrapper">
-                                                <RecipeCard recipe={recipe} index={0} hideActions={true} />
-                                                <button
-                                                    className="btn-delete"
-                                                    onClick={() => handleDelete(recipe.recipeId, 'favorite')}
-                                                >
-                                                    Remove
-                                                </button>
-                                            </div>
-                                        ))}
+                        <div className="recipe-cards-container">
+                            {/* Favorite Recipes Card */}
+                            <Link to="/favorites" className="recipe-card-link">
+                                <div className="recipe-card">
+                                    <div className="card-icon favorite-icon">❤️</div>
+                                    <h3 className="card-title">Favourite Recipes</h3>
+                                    <p className="card-count">{favoriteCount} {favoriteCount === 1 ? 'recipe' : 'recipes'}</p>
+                                    <div className="card-arrow">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                                        </svg>
                                     </div>
-                                ) : (
-                                    <div className="empty-state">
-                                        <p>No favorite recipes yet. Start by generating some recipes!</p>
-                                        <Link to="/recipes" className="btn btn-primary">
-                                            Generate Recipes
-                                        </Link>
-                                    </div>
-                                )}
-                            </section>
+                                </div>
+                            </Link>
 
-                            {/* Saved Recipes Section */}
-                            <section className="recipe-section">
-                                <h3 className="section-title">
-                                    <span>📌 Saved Recipes ({savedRecipes.length})</span>
-                                </h3>
-                                {savedRecipes.length > 0 ? (
-                                    <div className="recipes-grid">
-                                        {savedRecipes.map((recipe) => (
-                                            <div key={recipe.recipeId} className="recipe-wrapper">
-                                                <RecipeCard recipe={recipe} index={0} hideActions={true} />
-                                                <button
-                                                    className="btn-delete"
-                                                    onClick={() => handleDelete(recipe.recipeId, 'saved')}
-                                                >
-                                                    Remove
-                                                </button>
-                                            </div>
-                                        ))}
+                            {/* Saved Recipes Card */}
+                            <Link to="/saved" className="recipe-card-link">
+                                <div className="recipe-card">
+                                    <div className="card-icon saved-icon">📌</div>
+                                    <h3 className="card-title">Saved Recipes</h3>
+                                    <p className="card-count">{savedCount} {savedCount === 1 ? 'recipe' : 'recipes'}</p>
+                                    <div className="card-arrow">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                                        </svg>
                                     </div>
-                                ) : (
-                                    <div className="empty-state">
-                                        <p>No saved recipes yet. Start by generating some recipes!</p>
-                                        <Link to="/recipes" className="btn btn-primary">
-                                            Generate Recipes
-                                        </Link>
-                                    </div>
-                                )}
-                            </section>
-                        </>
+                                </div>
+                            </Link>
+                        </div>
                     )}
                 </div>
             </main>

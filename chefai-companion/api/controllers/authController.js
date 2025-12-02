@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import { OAuth2Client } from 'google-auth-library';
 import User from '../models/User.js';
 
 // Generate JWT token
@@ -120,6 +121,98 @@ export const login = async (req, res) => {
     }
 };
 
+// @desc    Google OAuth login/signup
+// @route   POST /api/auth/google
+// @access  Public
+export const googleAuth = async (req, res) => {
+    try {
+        const { credential } = req.body;
+
+        if (!credential) {
+            return res.status(400).json({
+                success: false,
+                message: 'Google credential is required'
+            });
+        }
+
+        // Verify the Google token
+        const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+        
+        let ticket;
+        try {
+            ticket = await client.verifyIdToken({
+                idToken: credential,
+                audience: process.env.GOOGLE_CLIENT_ID
+            });
+        } catch (error) {
+            console.error('Google token verification error:', error);
+            return res.status(401).json({
+                success: false,
+                message: 'Invalid Google token'
+            });
+        }
+
+        const payload = ticket.getPayload();
+        const { sub: googleId, email, name, picture } = payload;
+
+        if (!email) {
+            return res.status(400).json({
+                success: false,
+                message: 'Email not provided by Google'
+            });
+        }
+
+        // Check if user exists
+        let user = await User.findOne({ 
+            $or: [
+                { email },
+                { googleId }
+            ]
+        });
+
+        if (user) {
+            // Update user if they're logging in with Google for the first time
+            if (!user.googleId) {
+                user.googleId = googleId;
+                user.authProvider = 'google';
+                if (picture) user.avatar = picture;
+                await user.save();
+            }
+        } else {
+            // Create new user
+            user = await User.create({
+                name: name || email.split('@')[0],
+                email,
+                googleId,
+                avatar: picture,
+                authProvider: 'google'
+            });
+        }
+
+        // Generate token
+        const token = generateToken(user._id);
+
+        res.json({
+            success: true,
+            message: 'Google authentication successful',
+            token,
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                avatar: user.avatar
+            }
+        });
+    } catch (error) {
+        console.error('Google auth error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error authenticating with Google',
+            error: error.message
+        });
+    }
+};
+
 // @desc    Get current user profile
 // @route   GET /api/auth/profile
 // @access  Private
@@ -140,6 +233,7 @@ export const getProfile = async (req, res) => {
                 id: user._id,
                 name: user.name,
                 email: user.email,
+                avatar: user.avatar,
                 savedRecipes: user.savedRecipes,
                 favoriteRecipes: user.favoriteRecipes
             }

@@ -17,9 +17,24 @@ const userSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        required: [true, 'Please provide a password'],
+        required: function() {
+            return !this.googleId; // Password required only if not using Google OAuth
+        },
         minlength: 6,
         select: false
+    },
+    googleId: {
+        type: String,
+        unique: true,
+        sparse: true // Allows multiple null values
+    },
+    avatar: {
+        type: String
+    },
+    authProvider: {
+        type: String,
+        enum: ['local', 'google'],
+        default: 'local'
     },
     savedRecipes: [{
         recipeId: String,
@@ -55,9 +70,9 @@ const userSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Hash password before saving
+// Hash password before saving (only if password is provided and modified)
 userSchema.pre('save', async function () {
-    if (!this.isModified('password')) {
+    if (!this.isModified('password') || !this.password) {
         return;
     }
 
@@ -67,6 +82,9 @@ userSchema.pre('save', async function () {
 
 // Method to compare passwords
 userSchema.methods.comparePassword = async function (candidatePassword) {
+    if (!this.password) {
+        return false; // No password set (Google OAuth user)
+    }
     return await bcrypt.compare(candidatePassword, this.password);
 };
 

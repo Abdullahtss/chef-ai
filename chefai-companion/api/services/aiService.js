@@ -3,8 +3,8 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-// Get API key from environment variables
-const apiKey = process.env.OPENAI_API_KEY;
+// Get API key from environment variables (support both OPENAI_API_KEY and OPENROUTER_API_KEY)
+const apiKey = process.env.OPENROUTER_API_KEY || process.env.OPENAI_API_KEY;
 
 /**
  * Generate 4-5 recipes based on provided ingredients using OpenRouter/DeepSeek
@@ -16,7 +16,12 @@ export async function generateRecipes(ingredients) {
         console.log('API Key loaded:', apiKey ? `Yes (starts with: ${apiKey.substring(0, 15)}...)` : 'No - MISSING!');
 
         if (!apiKey) {
-            throw new Error('OpenRouter API key is missing. Please check your .env file.');
+            throw new Error('OpenRouter API key is missing. Please add OPENROUTER_API_KEY or OPENAI_API_KEY to your .env file.');
+        }
+
+        // Validate API key format
+        if (!apiKey.startsWith('sk-')) {
+            console.warn('⚠️  Warning: API key format may be incorrect. OpenRouter keys typically start with "sk-or-v1-"');
         }
 
         const ingredientList = ingredients.join(', ');
@@ -80,7 +85,22 @@ Return ONLY the JSON array, no additional text. Do not include markdown formatti
 
         if (!response.ok) {
             const errorData = await response.text();
-            throw new Error(`OpenRouter API Error: ${response.status} - ${errorData}`);
+            let errorMessage = `OpenRouter API Error: ${response.status} - ${errorData}`;
+            
+            // Provide helpful error messages based on status code
+            if (response.status === 401) {
+                errorMessage += '\n\n💡 This usually means:';
+                errorMessage += '\n   1. Your API key is invalid or expired';
+                errorMessage += '\n   2. Your OpenRouter account may have been deleted';
+                errorMessage += '\n   3. Please check your API key at https://openrouter.ai/keys';
+                errorMessage += '\n   4. Make sure you have credits/balance in your OpenRouter account';
+            } else if (response.status === 429) {
+                errorMessage += '\n\n💡 Rate limit exceeded. Please try again later or upgrade your plan.';
+            } else if (response.status === 402) {
+                errorMessage += '\n\n💡 Payment required. Please add credits to your OpenRouter account.';
+            }
+            
+            throw new Error(errorMessage);
         }
 
         const data = await response.json();

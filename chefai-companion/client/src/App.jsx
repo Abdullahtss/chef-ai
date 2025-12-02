@@ -6,6 +6,9 @@ import PublicRoute from './components/auth/PublicRoute'
 import ProtectedRoutes from './components/auth/ProtectedRoutes'
 import RecipeGenerator from './components/RecipeGenerator'
 import Home from './pages/Home'
+import SavedRecipesPage from './pages/SavedRecipesPage'
+import FavoriteRecipesPage from './pages/FavoriteRecipesPage'
+import SharedRecipesPage from './pages/SharedRecipesPage'
 import LandingPage from './pages/LandingPage'
 import './App.css'
 
@@ -21,11 +24,18 @@ function App() {
                             <Login />
                         </PublicRoute>
                     } />
+                    <Route path="/signup" element={
+                        <PublicRoute>
+                            <Signup />
+                        </PublicRoute>
+                    } />
 
                     {/* All other routes are protected */}
                     <Route element={<ProtectedRoutes />}>
-                        <Route path="/signup" element={<Signup />} />
                         <Route path="/home" element={<Home />} />
+                        <Route path="/saved" element={<SavedRecipesPage />} />
+                        <Route path="/favorites" element={<FavoriteRecipesPage />} />
+                        <Route path="/shared" element={<SharedRecipesPage />} />
                         <Route path="/recipes" element={
                             <div className="app">
                                 <header className="app-header">

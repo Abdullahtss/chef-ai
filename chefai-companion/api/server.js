@@ -5,11 +5,14 @@ import connectDB from './config/db.js';
 import recipeRoutes from './routes/recipeRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
+import sharedRecipeRoutes from './routes/sharedRecipeRoutes.js';
 
 dotenv.config();
 
-// Connect to MongoDB
-connectDB();
+// Connect to MongoDB (non-blocking - server will start even if DB connection fails)
+connectDB().catch(err => {
+    console.error('⚠️  Database connection failed, but server will continue running');
+});
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -22,6 +25,7 @@ app.use(express.json());
 app.use('/api/recipes', recipeRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
+app.use('/api/shared', sharedRecipeRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

@@ -1,8 +1,11 @@
 import { Link } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import chefLogo from '../assets/chef-logo.png';
 import './LandingPage.css';
 
 function LandingPage() {
+    const [openFAQ, setOpenFAQ] = useState(null);
+
     useEffect(() => {
         // Smooth scroll for anchor links
         const handleAnchorClick = (e) => {
@@ -23,13 +26,43 @@ function LandingPage() {
         return () => document.removeEventListener('click', handleAnchorClick);
     }, []);
 
+    const toggleFAQ = (index) => {
+        setOpenFAQ(openFAQ === index ? null : index);
+    };
+
+    const faqs = [
+        {
+            question: "How does the AI recipe generator work?",
+            answer: "Our AI recipe generator uses advanced machine learning to create unique recipes based on your input. Simply describe what you want to cook, list your available ingredients, or specify dietary preferences, and our AI will generate a complete recipe with ingredients, instructions, and cooking times tailored to your needs."
+        },
+        {
+            question: "Can I save and organize my favorite recipes?",
+            answer: "Yes! You can save any generated recipe to your personal collection. You can also mark recipes as favorites for quick access, organize them by category, and access all your saved recipes from anywhere, anytime. Your recipe collection is stored securely in your account."
+        },
+        {
+            question: "How do I share recipes with other users?",
+            answer: "Sharing recipes is easy! You can share any of your saved or favorite recipes with other users by entering their username. They'll receive the recipe in their shared recipes section. You can also discover amazing recipes shared by the community and build a network of recipe enthusiasts."
+        },
+        {
+            question: "Is there a free plan available?",
+            answer: "Yes, we offer a free Basic plan that includes limited usage credits, the ability to save your recipes, basic AI chat functionality, and community support. You can upgrade to Premium or Pro plans anytime to unlock more features, higher usage limits, and advanced capabilities."
+        },
+        {
+            question: "What dietary restrictions and preferences does the AI support?",
+            answer: "Our AI recipe generator supports a wide range of dietary needs including vegetarian, vegan, gluten-free, keto, paleo, low-carb, dairy-free, and more. You can specify your dietary restrictions when generating recipes, and the AI will create recipes that comply with your requirements while still being delicious and nutritious."
+        }
+    ];
+
     return (
         <div className="landing-page">
             {/* Header */}
             <header>
                 <div className="container">
                     <nav>
-                        <Link to="/" className="logo">Chef AI</Link>
+                        <Link to="/" className="logo">
+                            <img src={chefLogo} alt="Chef AI Logo" className="logo-icon" />
+                            <span className="logo-text">ChefAI Companion</span>
+                        </Link>
                         <ul>
                             <li><a href="#features">Features</a></li>
                             <li><a href="#pricing">Pricing</a></li>
@@ -44,8 +77,8 @@ function LandingPage() {
             <section className="hero">
                 <div className="container">
                     <div className="hero-content">
-                        <h1>Create Custom Recipes & Meal Plans with AI</h1>
-                        <p>Your Personalized AI Kitchen Copilot - Instantly generate recipes and meal plans tailored to your tastes, goals, and lifestyle</p>
+                        <h1>Create Custom Recipes with AI</h1>
+                        <p>Your Personalized AI Kitchen Copilot - Instantly generate recipes tailored to your tastes, goals, and lifestyle</p>
                         <div>
                             <Link to="/signup" className="btn-primary">Start Free Trial</Link>
                             <button className="btn-secondary">Watch Demo</button>
@@ -71,7 +104,7 @@ function LandingPage() {
                             <ul className="feature-list">
                                 <li>Turn leftovers into delicious meals</li>
                                 <li>Request substitutions and dietary tweaks</li>
-                                <li>Save and share your favorite creations</li>
+                               
                                 <li>Never run out of inspiration</li>
                             </ul>
                         </div>
@@ -86,19 +119,19 @@ function LandingPage() {
 
                     <div className="feature-item">
                         <div className="feature-content">
-                            <h2>AI Meal Planner</h2>
-                            <p>Achieve your goals with a meal plan built just for you. Whether it's weight loss, muscle gain, or eating on a budget.</p>
+                            <h2>Save Your Favorite Creations</h2>
+                            <p>Build your personal recipe collection and never lose a recipe again. Keep all your favorite recipes organized in one place.</p>
                             <ul className="feature-list">
-                                <li>Full week of personalized meals</li>
-                                <li>Generate recipes for any meal instantly</li>
-                                <li>Easy customization and swaps</li>
-                                <li>Stay on track and save time</li>
+                                <li>Save recipes to your personal collection</li>
+                                <li>Mark favorites for quick access</li>
+                                <li>Organize recipes by category</li>
+                                <li>Access your saved recipes anytime, anywhere</li>
                             </ul>
                         </div>
                         <div className="feature-image">
                             <img 
-                                src="https://images.unsplash.com/photo-1490645935967-10de6ba17061?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2053&q=80" 
-                                alt="AI Meal Planner - Weekly meal planning"
+                                src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80" 
+                                alt="Save Recipes - Recipe collection"
                                 loading="lazy"
                             />
                         </div>
@@ -106,19 +139,19 @@ function LandingPage() {
 
                     <div className="feature-item">
                         <div className="feature-content">
-                            <h2>Personalized AI Profile</h2>
-                            <p>Your AI truly knows you - your tastes, dietary needs, goals, and kitchen preferences.</p>
+                            <h2>Share Favourite Recipes</h2>
+                            <p>Share your favorite recipes with friends, family, and the community. Discover amazing recipes shared by other users.</p>
                             <ul className="feature-list">
-                                <li>Reach your personal health goals</li>
-                                <li>Get smarter AI suggestions</li>
-                                <li>Save time with instant ideas</li>
-                                <li>Reduce food waste</li>
+                                <li>Share your favorite recipes with other users</li>
+                                <li>Discover recipes shared by the community</li>
+                                <li>Send recipes directly to friends</li>
+                                <li>Build a network of recipe enthusiasts</li>
                             </ul>
                         </div>
                         <div className="feature-image">
                             <img 
-                                src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80" 
-                                alt="Personalized AI Profile - Customized meal recommendations"
+                                src="https://images.unsplash.com/photo-1490645935967-10de6ba17061?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2053&q=80" 
+                                alt="Share Favourite Recipes - Recipe sharing"
                                 loading="lazy"
                             />
                         </div>
@@ -181,12 +214,38 @@ function LandingPage() {
                 </div>
             </section>
 
-            {/* CTA Section */}
-            <section className="cta">
+            {/* FAQ Section */}
+            <section className="faq-section">
                 <div className="container">
-                    <h2>Ready to Transform Your Cooking?</h2>
-                    <p>Join thousands of home chefs already using AI to create amazing meals every day.</p>
-                    <Link to="/signup" className="btn-primary" style={{ background: 'white', color: '#667eea' }}>Start Your Free Trial Today</Link>
+                    <h2 className="faq-title">Frequently Asked Questions</h2>
+                    <p className="faq-subtitle">Everything you need to know about ChefAI Companion</p>
+                    <div className="faq-container">
+                        {faqs.map((faq, index) => (
+                            <div key={index} className={`faq-item ${openFAQ === index ? 'active' : ''}`}>
+                                <button 
+                                    className="faq-question" 
+                                    onClick={() => toggleFAQ(index)}
+                                    aria-expanded={openFAQ === index}
+                                >
+                                    <span>{faq.question}</span>
+                                    <svg 
+                                        className="faq-icon" 
+                                        width="20" 
+                                        height="20" 
+                                        viewBox="0 0 24 24" 
+                                        fill="none" 
+                                        stroke="currentColor" 
+                                        strokeWidth="2"
+                                    >
+                                        <path d="M6 9l6 6 6-6"/>
+                                    </svg>
+                                </button>
+                                <div className="faq-answer">
+                                    <p>{faq.answer}</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </section>
 
