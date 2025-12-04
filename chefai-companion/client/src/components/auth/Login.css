@@ -140,17 +140,6 @@
     filter: brightness(0) invert(1);
 }
 
-.logo-text {
-    font-size: 44px;
-    font-weight: 900;
-    color: #000000;
-    letter-spacing: -0.8px;
-    line-height: 1.2;
-    background: transparent;
-    padding: 12px 24px;
-    border-radius: 8px;
-    display: inline-block;
-}
 
 .login-headline {
     font-size: 48px;

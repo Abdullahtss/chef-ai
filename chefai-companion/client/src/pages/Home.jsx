@@ -71,9 +71,11 @@ function Home() {
                             </button>
                         </div>
                     </div>
-                    <div className="welcome-section">
+                </div>
+                <div className="welcome-section">
+                    <div className="container">
                         <h2>Welcome back, {user?.name}! 👋</h2>
-                        <p>Here are your saved and favorite recipes</p>
+                        <p>Here are your saved and favourite recipes</p>
                     </div>
                 </div>
             </header>

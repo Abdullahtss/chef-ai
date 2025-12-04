@@ -162,6 +162,19 @@ Generate recipes from ingredients.
 }
 ```
 
+## 🚀 Deployment
+
+This project is configured for deployment on Vercel. See [VERCEL_DEPLOYMENT.md](./VERCEL_DEPLOYMENT.md) for detailed deployment instructions.
+
+### Quick Deployment Steps:
+
+1. **Deploy Backend**: Import repository to Vercel, set root directory to `chefai-companion/api`
+2. **Deploy Frontend**: Create a second project, set root directory to `chefai-companion/client`
+3. **Set Environment Variables**: Configure all required environment variables in Vercel dashboard
+4. **Update Frontend API URL**: Set `VITE_API_URL` to your deployed backend URL
+
+For complete instructions, see [VERCEL_DEPLOYMENT.md](./VERCEL_DEPLOYMENT.md).
+
 ## 🤝 Contributing
 
 This is a student project for the Web Programming course. Contributions and suggestions are welcome!

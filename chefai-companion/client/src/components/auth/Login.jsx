@@ -152,7 +152,7 @@ function Login() {
                             <div className="benefit-icon">✨</div>
                             <div className="benefit-content">
                                 <strong>5 Best Recies</strong>
-                                <span>Generate recipes as you likek</span>
+                                <span>Generate best recipes from your available ingredients</span>
                             </div>
                         </li>
                         <li className="benefit-item">
