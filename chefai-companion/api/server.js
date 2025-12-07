@@ -12,7 +12,7 @@ dotenv.config();
 
 // Connect to MongoDB (non-blocking - server will start even if DB connection fails)
 connectDB().catch(err => {
-    console.error('⚠️  Database connection failed, but server will continue running');
+  console.error('⚠️  Database connection failed, but server will continue running');
 });
 
 const app = express();
@@ -43,6 +43,7 @@ app.get('/api/health', (req, res) => {
 
 // Debug endpoint to check environment variables (remove in production later)
 app.get('/api/debug', (req, res) => {
+  const geminiKey = process.env.GEMINI_API_KEY;
   const openRouterKey = process.env.OPENROUTER_API_KEY;
   const openAiKey = process.env.OPENAI_API_KEY;
   const frontendUrl = process.env.FRONTEND_URL;
@@ -50,11 +51,13 @@ app.get('/api/debug', (req, res) => {
   res.json({
     environment: process.env.NODE_ENV || 'not set',
     frontendUrl: frontendUrl || 'not set',
+    geminiApiKey: geminiKey ? `Set (starts with: ${geminiKey.substring(0, 10)}...)` : 'NOT SET',
     openRouterApiKey: openRouterKey ? `Set (starts with: ${openRouterKey.substring(0, 15)}...)` : 'NOT SET',
     openAiApiKey: openAiKey ? `Set (starts with: ${openAiKey.substring(0, 15)}...)` : 'NOT SET',
-    activeKey: openRouterKey ? 'OPENROUTER_API_KEY' : (openAiKey ? 'OPENAI_API_KEY' : 'NONE')
+    activeService: geminiKey ? 'GEMINI' : (openRouterKey ? 'OPENROUTER' : (openAiKey ? 'OPENAI' : 'NONE'))
   });
 });
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
