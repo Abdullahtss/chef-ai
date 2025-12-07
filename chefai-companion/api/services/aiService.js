@@ -68,7 +68,7 @@ Return ONLY the JSON array, no additional text. Do not include markdown formatti
             method: "POST",
             headers: {
                 "Authorization": `Bearer ${apiKey}`,
-                "HTTP-Referer": "http://localhost:5173",
+               "HTTP-Referer": process.env.FRONTEND_URL || "http://localhost:5173",
                 "X-Title": "ChefAI Companion",
                 "Content-Type": "application/json"
             },
