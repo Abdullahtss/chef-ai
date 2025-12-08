@@ -3,34 +3,46 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 // Get API keys from environment variables
-const geminiKey = process.env.GEMINI_API_KEY;
+const groqKey = process.env.GROQ_API_KEY;
 const openRouterKey = process.env.OPENROUTER_API_KEY || process.env.OPENAI_API_KEY;
 
 /**
  * Generate 4-5 recipes based on provided ingredients
- * Uses Gemini API if available, otherwise falls back to OpenRouter
+ * Uses OpenRouter first, falls back to Groq
  * @param {Array<string>} ingredients - List of available ingredients
  * @returns {Promise<Array>} Array of recipe objects
  */
 export async function generateRecipes(ingredients) {
-    // Use Gemini if available, otherwise use OpenRouter
-    if (geminiKey) {
-        console.log('Using Gemini API...');
-        return generateRecipesWithGemini(ingredients);
-    } else if (openRouterKey) {
+    // Use OpenRouter first (works on localhost), fall back to Groq (works everywhere)
+    if (openRouterKey) {
         console.log('Using OpenRouter API...');
-        return generateRecipesWithOpenRouter(ingredients);
+        try {
+            return await generateRecipesWithOpenRouter(ingredients);
+        } catch (error) {
+            console.log('OpenRouter failed, trying Groq...', error.message);
+            if (groqKey) {
+                return await generateRecipesWithGroq(ingredients);
+            }
+            throw error;
+        }
+    } else if (groqKey) {
+        console.log('Using Groq API...');
+        return generateRecipesWithGroq(ingredients);
     } else {
-        throw new Error('No API key found. Please add GEMINI_API_KEY or OPENROUTER_API_KEY to your environment variables.');
+        throw new Error('No API key found. Please add OPENROUTER_API_KEY or GROQ_API_KEY to your environment variables.');
     }
 }
 
 /**
- * Generate recipes using Google Gemini API
+ * Generate recipes using Groq API (works on localhost and production)
  */
-async function generateRecipesWithGemini(ingredients) {
+async function generateRecipesWithGroq(ingredients) {
     try {
-        console.log('Gemini API Key loaded:', geminiKey ? `Yes (starts with: ${geminiKey.substring(0, 10)}...)` : 'No - MISSING!');
+        console.log('Groq API Key loaded:', groqKey ? `Yes (starts with: ${groqKey.substring(0, 10)}...)` : 'No - MISSING!');
+
+        if (!groqKey) {
+            throw new Error('Groq API key is missing. Please add GROQ_API_KEY to your .env file.');
+        }
 
         const ingredientList = ingredients.join(', ');
 
@@ -70,34 +82,35 @@ Format your response as a JSON array of recipe objects with this exact structure
 
 Return ONLY the JSON array, no additional text. Do not include markdown formatting like \`\`\`json.`;
 
-        console.log('Sending request to Gemini...');
+        console.log('Sending request to Groq...');
 
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
-            method: "POST",
+        const model = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
+
+        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
             headers: {
-                "Content-Type": "application/json"
+                'Authorization': `Bearer ${groqKey}`,
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                contents: [{
-                    parts: [{
-                        text: prompt
-                    }]
-                }],
-                generationConfig: {
-                    temperature: 0.7,
-                    maxOutputTokens: 4096
-                }
+                model: model,
+                messages: [
+                    {
+                        role: 'user',
+                        content: prompt
+                    }
+                ],
+                temperature: 0.7,
+                max_tokens: 4096
             })
         });
 
         if (!response.ok) {
             const errorData = await response.text();
-            let errorMessage = `Gemini API Error: ${response.status} - ${errorData}`;
+            let errorMessage = `Groq API Error: ${response.status} - ${errorData}`;
 
-            if (response.status === 400) {
-                errorMessage += '\n\n💡 Check your API key format';
-            } else if (response.status === 403) {
-                errorMessage += '\n\n💡 API key may be invalid or project not enabled';
+            if (response.status === 401) {
+                errorMessage += '\n\n💡 This usually means your API key is invalid or expired.';
             } else if (response.status === 429) {
                 errorMessage += '\n\n💡 Rate limit exceeded. Please try again later.';
             }
@@ -107,12 +120,12 @@ Return ONLY the JSON array, no additional text. Do not include markdown formatti
 
         const data = await response.json();
 
-        if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
-            throw new Error('Invalid response format from Gemini');
+        if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+            throw new Error('Invalid response format from Groq');
         }
 
-        const content = data.candidates[0].content.parts[0].text.trim();
-        console.log('Received response from Gemini');
+        const content = data.choices[0].message.content.trim();
+        console.log('Received response from Groq');
 
         // Parse the JSON response
         let recipes;
@@ -125,7 +138,7 @@ Return ONLY the JSON array, no additional text. Do not include markdown formatti
             if (jsonMatch) {
                 recipes = JSON.parse(jsonMatch[0]);
             } else {
-                throw new Error('Failed to parse recipe JSON from Gemini response');
+                throw new Error('Failed to parse recipe JSON from Groq response');
             }
         }
 
@@ -136,17 +149,21 @@ Return ONLY the JSON array, no additional text. Do not include markdown formatti
         return recipes.slice(0, 5);
 
     } catch (error) {
-        console.error('Error generating recipes with Gemini:', error);
+        console.error('Error generating recipes with Groq:', error);
         throw new Error(`Failed to generate recipes: ${error.message}`);
     }
 }
 
 /**
- * Generate recipes using OpenRouter API (fallback)
+ * Generate recipes using OpenRouter API (works on localhost)
  */
 async function generateRecipesWithOpenRouter(ingredients) {
     try {
         console.log('OpenRouter API Key loaded:', openRouterKey ? `Yes (starts with: ${openRouterKey.substring(0, 15)}...)` : 'No - MISSING!');
+
+        if (!openRouterKey) {
+            throw new Error('OpenRouter API key is missing.');
+        }
 
         const ingredientList = ingredients.join(', ');
 
@@ -212,13 +229,9 @@ Return ONLY the JSON array, no additional text. Do not include markdown formatti
             let errorMessage = `OpenRouter API Error: ${response.status} - ${errorData}`;
 
             if (response.status === 401) {
-                errorMessage += '\n\n💡 This usually means:';
-                errorMessage += '\n   1. Your API key is invalid or expired';
-                errorMessage += '\n   2. Please check your API key at https://openrouter.ai/keys';
+                errorMessage += '\n\n💡 This usually means your API key is invalid or expired.';
             } else if (response.status === 429) {
                 errorMessage += '\n\n💡 Rate limit exceeded. Please try again later.';
-            } else if (response.status === 402) {
-                errorMessage += '\n\n💡 Payment required. Please add credits to your OpenRouter account.';
             }
 
             throw new Error(errorMessage);
