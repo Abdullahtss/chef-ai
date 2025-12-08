@@ -7,6 +7,7 @@ import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import sharedRecipeRoutes from './routes/sharedRecipeRoutes.js';
 import mealPlannerRoutes from './routes/mealPlannerRoutes.js';
+import { generateRecipes } from './services/aiService.js';
 
 dotenv.config();
 
@@ -100,6 +101,26 @@ app.get('/api/test-groq', async (req, res) => {
     res.status(500).json({
       error: 'Failed to call Groq API',
       message: error.message
+    });
+  }
+});
+
+// Test recipe generation using aiService.js
+app.get('/api/test-recipe', async (req, res) => {
+  try {
+    console.log('Testing generateRecipes from aiService.js...');
+    const recipes = await generateRecipes(['chicken', 'rice']);
+    res.json({
+      success: true,
+      count: recipes.length,
+      recipes: recipes
+    });
+  } catch (error) {
+    console.error('Test recipe error:', error);
+    res.status(500).json({
+      error: 'Failed to generate recipes',
+      message: error.message,
+      stack: error.stack
     });
   }
 });
